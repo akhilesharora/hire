@@ -1,0 +1,7 @@
+{
+  "Version": "dev",
+  "ServerAddr": "localhost:8070",
+  "LogLevel": "debug",
+  "AccessKey": "",
+  "Originator": ""
+}

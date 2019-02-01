@@ -1,0 +1,6 @@
+{
+  "Version": "dev",
+  "ServerAddr": "localhost:7070",
+  "LogLevel": "debug",
+  "AccessKey": ""
+}
