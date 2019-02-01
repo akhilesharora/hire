@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	"github.com/messagebird/internal/testutils"
+	"github.com/akhilesharora/hire/internal/testutils"
 )
 
 type MessagebirdTestSuite struct {

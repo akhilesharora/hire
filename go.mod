@@ -1,4 +1,4 @@
-module github.com/messagebird
+module github.com/akhilesharora/hire
 
 require (
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
@@ -10,5 +10,4 @@ require (
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3 // indirect
 	github.com/stretchr/testify v1.2.2
-	github.com/syndtr/goleveldb v0.0.0-20181128100959-b001fa50d6b2
 )

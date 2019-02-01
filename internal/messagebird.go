@@ -10,8 +10,9 @@ import (
 
 	sdk "github.com/messagebird/go-rest-api"
 	"github.com/messagebird/go-rest-api/sms"
-	"github.com/messagebird/internal/config"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/akhilesharora/hire/internal/config"
 )
 
 const MaxContentLength = 160

@@ -3,7 +3,7 @@ package testutils
 import (
 	"log"
 
-	"github.com/messagebird/internal/config"
+	"github.com/akhilesharora/hire/internal/config"
 )
 
 // GetConfig returns ServerConfig with test configurations
