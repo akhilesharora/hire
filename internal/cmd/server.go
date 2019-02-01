@@ -35,9 +35,9 @@ var serverCmd = &cobra.Command{
 		q := make(chan *internal.Messages, 100)
 		s := internal.NewServer(cnf,&q)
 		// Start SMS worker
-		go func() {
+		go func(q <-chan *internal.Messages) {
 			s.MessagebirdWorker(q)
-		}()
+		}(q)
 
 		http.HandleFunc("/", s.Handler )
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"time"
 
 	sdk "github.com/messagebird/go-rest-api"
@@ -42,7 +43,6 @@ func (s *Server) Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data, err := ioutil.ReadAll(r.Body)
-	fmt.Println("data",string(data))
 	if err!= nil {
 		log.WithError(err).Error("Failed to parse the request")
 		w.WriteHeader(http.StatusBadRequest)
@@ -63,8 +63,13 @@ func (s *Server) Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if msg.Originator == "" {
+		msg.Originator = s.conf.Originator
+	}
+
+	//@TODO- Validation of phone number
 	s.q <- &Messages{
-		Recipients: []string{msg.Message},
+		Recipients: []string{strconv.FormatInt(msg.Recipient,10)},
 		Originator: msg.Originator,
 		Message: msg.Message,
 	}
@@ -74,10 +79,9 @@ func (s *Server) Handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) newDefaultClient() *sdk.Client {
-	fmt.Println("New client")
 	return sdk.New(s.conf.AccessKey)
 }
-func (s *Server) MessagebirdWorker(q chan *Messages) {
+func (s *Server) MessagebirdWorker(q <-chan *Messages) {
 	log.Println("Initializing worker")
 	tick := time.Tick(1 * time.Second)
 
@@ -86,15 +90,15 @@ func (s *Server) MessagebirdWorker(q chan *Messages) {
 		select {
 		case <-tick:
 			fmt.Println("Here", time.Now().UTC())
-			case msg:= <-s.q:
+			case msg:= <-q:
 			client := s.newDefaultClient()
 			if client == nil {
-				log.Error("Messagebird client died")
+				log.Println("Messagebird client died")
 				continue
 			}
-			fmt.Println("sending msg", time.Now().UTC())
-			err := s.sendSms(msg, client)
+			err := sendSms(msg, client)
 			if err!= nil{
+				fmt.Println("Error:", err)
 				log.WithError(err).WithFields(log.Fields{"Message": msg, "Client": client})
 			}
 			continue
@@ -108,17 +112,11 @@ type Messages struct {
 	Message string
 }
 
-func (s *Server) sendSms(msg *Messages, client *sdk.Client) error {
-	fmt.Println("in sms", msg)
-	if msg.Originator == "" {
-		msg.Originator = s.conf.Originator
-	}
-	message, err := sms.Create(client, msg.Originator, msg.Recipients, msg.Message,&sms.Params{Type:"sms", Reference: "Hire"})
+func sendSms(msg *Messages, client *sdk.Client) error {
+	message, err := sms.Create(client, msg.Originator, msg.Recipients, msg.Message,nil)
 	if err!= nil {
-		log.WithError(err)
 		return err
 	}
-	fmt.Println("......................................")
-	log.Info("Messagebird Message:", message)
+	log.Println("Messagebird Message:", message)
 	return nil
 }
