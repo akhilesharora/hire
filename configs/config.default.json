@@ -3,5 +3,5 @@
   "ServerAddr": "localhost:8070",
   "LogLevel": "debug",
   "AccessKey": "",
-  "Originator": ""
+  "Originator": "Messagebird"
 }
