@@ -9,8 +9,6 @@ import (
 	"strconv"
 	"time"
 
-	sdk "github.com/messagebird/go-rest-api"
-	"github.com/messagebird/go-rest-api/sms"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/akhilesharora/hire/internal/config"
@@ -23,18 +21,16 @@ var orRgx = regexp.MustCompile("^[a-zA-Z0-9]{1,11}$")
 type Server struct {
 	conf *config.ServerConfig
 	q chan *Messages
-	c *sdk.Client
+	cl SmsClient
 }
 
 func NewServer(conf *config.ServerConfig, q *chan *Messages) *Server {
-	return &Server{
+	s:=  &Server{
 		conf: conf,
 		q: *q,
 	}
-}
-
-func (s *Server) newDefaultClient() *sdk.Client {
-	return sdk.New(s.conf.AccessKey)
+	s.cl = NewDefaultClient(s.conf.AccessKey)
+	return s
 }
 
 // Example: {"recipient":31612345678,"originator":"MessageBird","message":"This is a test message."}
@@ -95,22 +91,17 @@ func isValidMessage(msg *Message) error {
 }
 
 func (s *Server) MessagebirdWorker(q <-chan *Messages) {
-
 	log.Println("Initializing worker")
 	tick := time.Tick(1 * time.Second)
-	client := s.newDefaultClient()
-	if client == nil {
-		log.Println("Messagebird client died")
-	}
+	// Forever
 	for {
-		// Forever
 		select {
 		case <-tick:
 			msg := <-q
-			err := sendSms(msg, client)
+			err := s.cl.sendSms(msg)
 			if err != nil {
 				fmt.Println("Error:", err)
-				log.WithError(err).WithFields(log.Fields{"Message": msg, "Client": client})
+				log.WithError(err).WithFields(log.Fields{"Message": msg})
 			}
 		}
 	}
@@ -120,13 +111,4 @@ type Messages struct {
 	Recipients []string
 	Originator string
 	Message string
-}
-
-func sendSms(msg *Messages, client *sdk.Client) error {
-	message, err := sms.Create(client, msg.Originator, msg.Recipients, msg.Message,nil)
-	if err!= nil {
-		return err
-	}
-	log.Println("Messagebird Message:", message)
-	return nil
 }
