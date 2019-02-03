@@ -112,7 +112,6 @@ func (s *Server) MessagebirdWorker(q <-chan *Messages) {
 				fmt.Println("Error:", err)
 				log.WithError(err).WithFields(log.Fields{"Message": msg, "Client": client})
 			}
-			continue
 		}
 	}
 }

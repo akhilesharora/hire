@@ -32,7 +32,7 @@ var serverCmd = &cobra.Command{
 		log.SetLevel(logLevel)
 		log.Infof("starting server at %s", cnf.ServerAddr)
 
-		q := make(chan *internal.Messages, 100)
+		q := make(chan *internal.Messages, 1000)
 		s := internal.NewServer(cnf,&q)
 		// Start SMS worker
 		go func(q <-chan *internal.Messages) {
