@@ -106,7 +106,7 @@ func (s *Server) MessagebirdWorker(q <-chan *Messages) {
 		// Forever
 		select {
 		case <-tick:
-		case msg := <-q:
+			msg := <-q
 			err := sendSms(msg, client)
 			if err != nil {
 				fmt.Println("Error:", err)
