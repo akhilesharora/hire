@@ -7,8 +7,8 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
-	"github.com/messagebird/internal"
-	"github.com/messagebird/internal/config"
+	"github.com/akhilesharora/hire/internal"
+	"github.com/akhilesharora/hire/internal/config"
 )
 
 // var SMSChan = make(chan *internal.Messages, 10)

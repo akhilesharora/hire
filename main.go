@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/messagebird/internal/cmd"
+	"github.com/akhilesharora/hire/internal/cmd"
 )
 
 func main(){
