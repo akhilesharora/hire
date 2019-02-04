@@ -2,7 +2,6 @@ package internal
 
 import (
 	"bytes"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -43,7 +42,6 @@ func (s *MessagebirdTestSuite) Test01DoSendSMSRequest() {
 func (s *MessagebirdTestSuite) Test02GETMethodNotAllowed() {
 	cl := &http.Client{}
 	payload := `{"recipient":31620286093,"originator":"MessageBird","message":"This is a test message."}`
-	fmt.Println("server", urlScheme + s.server.conf.ServerAddr)
 	req, err := http.NewRequest("GET", s.restEndpoint, bytes.NewBuffer([]byte(payload)))
 	if err != nil {
 		log.Println(err)
@@ -95,18 +93,18 @@ func (s *MessagebirdTestSuite) Test04SendSMS() {
 }
 
 func TestMessagebirdTestSuite(t *testing.T) {
-	mailerTestSuite := MessagebirdTestSuite{}
+	m := MessagebirdTestSuite{}
 	q := make(chan *Messages, 1000)
-	mailerTestSuite.server = NewServer(testutils.GetConfig(), &q)
+	m.server = NewServer(testutils.GetConfig(), &q)
 	// Start an instance of test server
-	http.HandleFunc("/", mailerTestSuite.server.Handler )
+	http.HandleFunc("/", m.server.Handler )
 	go testutils.StartTestServerInstance()
 	// Start SMS worker
 	go func(q <-chan *Messages) {
-		mailerTestSuite.server.MessagebirdWorker(q)
+		m.server.MessagebirdWorker(q)
 	}(q)
-	mailerTestSuite.restEndpoint = makeFQD(urlScheme,mailerTestSuite.server.conf.ServerAddr)
-	suite.Run(t, &mailerTestSuite)
+	m.restEndpoint = makeFQD(urlScheme, m.server.conf.ServerAddr)
+	suite.Run(t, &m)
 	time.Sleep(1 * time.Second)
 }
 
