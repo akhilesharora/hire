@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-var ServerAddr = "127.0.0.1:7070"
+var ServerAddr = "127.0.0.1:9070"
 // GetConfig returns ServerConfig with test configurations
 func GetConfig() *config.ServerConfig {
 	return &config.ServerConfig{

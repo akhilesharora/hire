@@ -114,7 +114,7 @@ func (s *MessagebirdTestSuite) Test04InvalidOriginatorValidations() {
 	s.Assert().EqualError(&CustomError{Code:InvalidOriginator, Msg: InvalidFormat, Description:"Invalid format or Content limit exceeded more than 11 chars", Parameter: "originator"}, string(b))
 
 }
-func (s *MessagebirdTestSuite) Test04BadRequestInvalidMessageValidation() {
+func (s *MessagebirdTestSuite) Test05BadRequestInvalidMessageValidation() {
 	cl := &http.Client{}
 	payload := `{"recipient":"31620286093"","originator":"MessageBird1234","message":"This is a test message"}`
 	req, err := http.NewRequest("POST", s.restEndpoint, bytes.NewBuffer([]byte(payload)))
