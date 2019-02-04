@@ -12,7 +12,7 @@ var (
 	"ServerAddr": "localhost:7070",
 	"LogLevel": "debug",
 	"AccessKey": "",
-	"Originator":"""
+	"Originator":""
 }`)
 )
 

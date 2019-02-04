@@ -20,12 +20,14 @@ gometalinter: ## Linter
 	./scripts/gometalinter.sh .
 
 test: ## Run all tests
-	go test github.com/hire/internal/config
+	go test github.com/akhilesharora/hire/internal/config
+	go test github.com/akhilesharora/hire/internal
 
 coverage: ## Run tests and generate coverage files per package
 	mkdir .coverage 2> /dev/null || true
 	rm -rf .coverage/*.out || true
-	go test github.com/hire/internal/config -coverprofile=.coverage/config.out
+	go test github.com/akhilesharora/hire/internal/config -coverprofile=.coverage/config.out
+	go test github.com/akhilesharora/hire/internal -coverprofile=.coverage/internal.out
 
 coverage-total: coverage-concat ## Total coverage of all packages
 	./scripts/coverage.sh $(MIN_COVERAGE)
