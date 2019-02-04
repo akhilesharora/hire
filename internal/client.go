@@ -14,12 +14,14 @@ type DefaultSmsClient struct {
 	c *sdk.Client
 }
 
-func NewDefaultClient(accessKey string) *DefaultSmsClient {
+// Returns a new SMS client
+func newDefaultClient(accessKey string) *DefaultSmsClient {
 	return &DefaultSmsClient{
 		c: sdk.New(accessKey),
 	}
 }
 
+// Implements SmsClient to send SMS with instance of DefaultSMS client
 func (cl *DefaultSmsClient) sendSms(msg *Messages) error {
 	message, err := sms.Create(cl.c, msg.Originator, msg.Recipients, msg.Message,nil)
 	if err!= nil {

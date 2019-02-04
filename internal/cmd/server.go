@@ -41,7 +41,6 @@ var serverCmd = &cobra.Command{
 
 		http.HandleFunc("/", s.Handler )
 
-		//@TODO- gracefull stop
 		// Run server
 		log.Println("Listen and service on", cnf.ServerAddr)
 		err = http.ListenAndServe(cnf.ServerAddr, nil)

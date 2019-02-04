@@ -17,7 +17,6 @@ import (
 const MaxContentLength = 160
 var orRgx = regexp.MustCompile("^[a-zA-Z0-9]{1,11}$")
 
-
 type Server struct {
 	conf *config.ServerConfig
 	q chan *Messages
@@ -29,17 +28,17 @@ func NewServer(conf *config.ServerConfig, q *chan *Messages) *Server {
 		conf: conf,
 		q: *q,
 	}
-	s.cl = NewDefaultClient(s.conf.AccessKey)
+	s.cl = newDefaultClient(s.conf.AccessKey)
 	return s
 }
 
-// Example: {"recipient":31612345678,"originator":"MessageBird","message":"This is a test message."}
 type Message struct {
 	Recipient int64 `json:"recipient"`
 	Originator string `json:"originator"`
 	Message string `json:"message,omitempty"`
 }
 
+// HTTP handler interface for incoming sms requests
 func (s *Server) Handler(w http.ResponseWriter, r *http.Request) {
 	if r.Method!= "POST" {
 		w.WriteHeader(http.StatusMethodNotAllowed)
@@ -53,6 +52,14 @@ func (s *Server) Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validation on content length
+	if r.ContentLength > MaxContentLength {
+		e := &CustomError{Code:InvalidMessageBody, Msg: ErrContentLimitExceeded, Description:"Content limit exceeded"}
+		w.Write([]byte(e.Error()))
+		log.WithError(e)
+		return
+	}
+
 	var msg Message
 	err = json.Unmarshal(data, &msg)
 	if err!= nil {
@@ -61,17 +68,14 @@ func (s *Server) Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if msg.Originator == "" {
-		msg.Originator = s.conf.Originator
-	}
-
-	err = isValidMessage(&msg)
-	if err!=nil{
-		w.Write([]byte(err.Error()))
-		log.WithError(err).Error("Failed to parse the message")
+	if !isValidMessage(&msg) {
+		e := &CustomError{Code:InvalidOriginator, Msg: InvalidFormat, Description:"Invalid format or Content limit exceeded more than 11 chars", Parameter: "originator"}
+		w.Write([]byte(e.Error()))
+		log.WithError(e)
 		return
 	}
 
+	// Push incoming sms messages to queue
 	s.q <- &Messages{
 		Recipients: []string{strconv.FormatInt(msg.Recipient,10)},
 		Originator: msg.Originator,
@@ -80,28 +84,27 @@ func (s *Server) Handler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func isValidMessage(msg *Message) error {
-	if !orRgx.MatchString(msg.Originator) {
-		return &CustomError{Code:InvalidOriginator, Msg: ErrContentLimitExceeded, Description:"Content limit exceeded or Invalid format", Parameter: "originator"}
+// Check if Message is valid
+func isValidMessage(msg *Message) bool {
+	if !orRgx.MatchString(msg.Originator) || len(msg.Originator) == 0 {
+		return false
 	}
-	if  len(msg.Message)>MaxContentLength {
-		return &CustomError{Code:InvalidMessageBody, Msg: ErrContentLimitExceeded, Description:"Content limit exceeded", Parameter: "message"}
-	}
-	return nil
+	return true
 }
 
+// Worker for processing SMS requests
 func (s *Server) MessagebirdWorker(q <-chan *Messages) {
 	log.Println("Initializing worker")
 	tick := time.Tick(1 * time.Second)
 	// Forever
 	for {
 		select {
+		// Rate limit request with 1 req/s
 		case <-tick:
 			msg := <-q
 			err := s.cl.sendSms(msg)
 			if err != nil {
-				fmt.Println("Error:", err)
-				log.WithError(err).WithFields(log.Fields{"Message": msg})
+				fmt.Println(err)
 			}
 		}
 	}
@@ -112,3 +115,4 @@ type Messages struct {
 	Originator string
 	Message string
 }
+
