@@ -92,6 +92,49 @@ func (s *MessagebirdTestSuite) Test04SendSMS() {
 	s.Assert().NoError(err)
 }
 
+func (s *MessagebirdTestSuite) Test04InvalidOriginatorValidations() {
+	cl := &http.Client{}
+	payload := `{"recipient":31620286093,"originator":"MessageBird1234","message":"This is a test message"}`
+	req, err := http.NewRequest("POST", s.restEndpoint, bytes.NewBuffer([]byte(payload)))
+	if err != nil {
+		log.Println(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	r, err := cl.Do(req)
+	if err != nil {
+		log.Println(err)
+	}
+	body := r.Body
+	b , err := ioutil.ReadAll(body)
+	if err != nil {
+		log.Println(err)
+	}
+	defer body.Close()
+	s.Assert().Equal(200,r.StatusCode)
+	s.Assert().EqualError(&CustomError{Code:InvalidOriginator, Msg: InvalidFormat, Description:"Invalid format or Content limit exceeded more than 11 chars", Parameter: "originator"}, string(b))
+
+}
+func (s *MessagebirdTestSuite) Test04BadRequestInvalidMessageValidation() {
+	cl := &http.Client{}
+	payload := `{"recipient":"31620286093"","originator":"MessageBird1234","message":"This is a test message"}`
+	req, err := http.NewRequest("POST", s.restEndpoint, bytes.NewBuffer([]byte(payload)))
+	if err != nil {
+		log.Println(err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	r, err := cl.Do(req)
+	if err != nil {
+		log.Println(err)
+	}
+	body := r.Body
+	_ , err = ioutil.ReadAll(body)
+	if err != nil {
+		log.Println(err)
+	}
+	defer body.Close()
+	s.Assert().Equal(http.StatusBadRequest,r.StatusCode)
+}
+
 func TestMessagebirdTestSuite(t *testing.T) {
 	m := MessagebirdTestSuite{}
 	q := make(chan *Messages, 1000)
